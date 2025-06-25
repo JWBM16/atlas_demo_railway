@@ -5,11 +5,15 @@ import random
 from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
-from dotenv import load_dotenv
 
-load_dotenv()
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS") or os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+
+if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
+    raise ValueError(
+        "❌ No se encontraron las variables de entorno EMAIL_ADDRESS o EMAIL_PASSWORD"
+    )
+
 
 SESSION_FILE = "file.pkl"
 SESSION_DURATION_MINUTES = 5
