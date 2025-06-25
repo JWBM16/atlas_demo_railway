@@ -6,8 +6,15 @@ from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
 
-EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS") or os.getenv("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+
+# Solo usar dotenv en local
+if not os.getenv("RAILWAY_ENVIRONMENT"):
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
     raise ValueError(
