@@ -7,19 +7,15 @@ import smtplib
 from email.message import EmailMessage
 
 
-# Solo cargar dotenv si estás en desarrollo local
-if os.getenv("RAILWAY_ENVIRONMENT") is None:
+if os.getenv("RAILWAY_ENVIRONMENT"):  # Solo en Railway
+    EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
+    EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
+else:
     from dotenv import load_dotenv
 
     load_dotenv()
-
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-
-if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
-    raise ValueError(
-        "❌ No se encontraron las variables de entorno EMAIL_ADDRESS o EMAIL_PASSWORD"
-    )
+    EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 
 SESSION_FILE = "file.pkl"
