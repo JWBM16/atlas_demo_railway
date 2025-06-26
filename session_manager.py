@@ -5,17 +5,12 @@ import random
 from datetime import datetime, timedelta
 import smtplib
 from email.message import EmailMessage
+from dotenv import load_dotenv
 
 
-if os.getenv("RAILWAY_ENVIRONMENT"):  # Solo en Railway
-    EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
-    EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
-else:
-    from dotenv import load_dotenv
-
-    load_dotenv()
-    EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+load_dotenv()
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 
 SESSION_FILE = "file.pkl"
