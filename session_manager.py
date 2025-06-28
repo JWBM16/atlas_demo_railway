@@ -267,6 +267,21 @@ def stop_if_session_expired():
                 send_session_end_email(
                     session["username"], session_start, now, session["user_email"]
                 )
+
+                # ✅ Resetear archivo .pkl para permitir nuevo login
+                session.update(
+                    {
+                        "authenticated": False,
+                        "verified": False,
+                        "start_time": None,
+                        "username": "",
+                        "user_email": "",
+                        "code": "",
+                        "session_start_time": None,
+                    }
+                )
+                save_session(session)
+
                 st.warning(
                     "⚠️ Tu sesión ha expirado. Se ha enviado un correo con el resumen."
                 )
