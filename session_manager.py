@@ -283,6 +283,6 @@ def stop_if_session_expired():
                 save_session(session)
 
                 st.warning(
-                    "⚠️ Tu sesión ha expirado. Se ha enviado un correo con el resumen."
+                    "⚠️ Your session has expired. Please refresh your browser window"
                 )
                 st.stop()
