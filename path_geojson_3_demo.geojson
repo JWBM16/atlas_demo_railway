@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "Prueba_de_Path_3",
+        "name": "DEMO Prisma 100G Monterrey - SP3<br>OPP 121771<br>Ruta 2 DWDM Wavelength Single Link<br><br>Provider: PRISMA<br>12 months MRC: 0.00<br>24 months MRC: 0.00<br>36 months MRC: 0.00",
+        "color": "#60a5fa",
+        "feature_id": "Prueba_de_Path_3-0",
+        "coordinates": [
+          71.3999641618611,
+          -21.850651574215725
+        ]
+      },
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              47.635249763255736,
+              -4.644058967445474
+            ],
+            [
+              60.326265003451944,
+              -12.157631183876624
+            ],
+            [
+              71.78521896913962,
+              -21.331493386358805
+            ],
+            [
+              82.49865053923214,
+              -31.509999914081373
+            ],
+            [
+              94.75443653422613,
+              -39.61007441931634
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

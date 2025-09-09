@@ -8,6 +8,11 @@ import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
 
+# ==============================
+# atlas.io Version 1.2.0 - Copyright © White Labs Technologies 2025
+# author: jhonattan blanco
+# ==============================
+
 
 load_dotenv()
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
@@ -15,20 +20,11 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 
 SESSION_FILE = "file.pkl"
-SESSION_DURATION_MINUTES = 5
+SESSION_DURATION_MINUTES = 25
 
 # — Usuarios permitidos (hardcoded). Modifica o amplía aquí
 VALID_USERS = {
-    "Jhonattan": {"password": "@Ut0M@tI0n", "email": "jhonattan.blanco@orchest.net"},
     "JB": {"password": "jwb123", "email": "jhonattanblanco@gmail.com"},
-    "Irvin": {"password": "@Ut0M@tI0n", "email": "irvin.garciadececa@orchest.net"},
-    "Erwind": {"password": "@Ut0M@tI0n", "email": "erwind.martinez@orchest.net"},
-    "Jorge": {"password": "@Ut0M@tI0n", "email": "jorge.arrechea@orchest.net"},
-    "Nicolas": {"password": "@Ut0M@tI0n", "email": "nicolas.cramer@orchest.net"},
-    "Frank": {"password": "@Ut0M@tI0n", "email": "jhonattanblanco@gmail.com"},
-    "Daniela": {"password": "@Ut0M@tI0n", "email": "daniela.blanco@orchest.net"},
-    "Zimri": {"password": "@Ut0M@tI0n", "email": "zimri.gorrin@orchest.net"},
-    "Jaime": {"password": "@Ut0M@tI0n", "email": "yuri.penaforte@orchest.net"},
 }
 
 

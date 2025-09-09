@@ -1,0 +1,16 @@
+Atlas.io – Versión para registro de copyright
+© 2025 Jhonattan W. Blanco. All rights reserved.
+
+Este paquete conserva la misma estructura y organización de archivos
+de la versión original de Atlas.io desarrollada por el autor.
+
+Por razones de seguridad y confidencialidad:
+- Se eliminaron tokens y credenciales (.env, railway.json).
+- Los archivos .xlsx, .geojson y .pkl contienen datos ficticios,
+  manteniendo solo la estructura y campos representativos.
+- La lógica y organización del código fuente (.py) se mantienen intactas.
+- El archivo railway.json se incluye como referencia de despliegue; no contiene credenciales.
+
+Este material se entrega exclusivamente para efectos de registro en
+la U.S. Copyright Office y Safe Creative.
+

@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "Prueba_de_Path",
+        "name": "DEMO Prima Telecom 100G Monterrey - Coresite LA2<br>OPP 121771<br>Ruta 1 DWDM Wavelength Single Link<br>12 months MRC: 0.00br>24 months MRC: 0.00<br>36 months MRC: 0.00",
+        "color": "#60a5fa",
+        "feature_id": "Prueba_de_Path-0",
+        "coordinates": [
+          -37.66729054417989,
+          -30.678653455505838
+        ]
+      },
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              -28.028660077105812,
+              -37.99913958218664
+            ],
+            [
+              -33.35981746348622,
+              -34.92704613655087
+            ],
+            [
+              -37.718592317458196,
+              -30.737603501283797
+            ],
+            [
+              -42.98084878130518,
+              -27.586337109413687
+            ],
+            [
+              -46.24853408154404,
+              -22.143140948094178
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -40,16 +40,14 @@ from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from PIL import Image
 from data_sheet import (
-    AAG,
-    AAG_seg2,
-    globenet_data,
-    partedos_madrid,
-    parteuno_madrid,
-    seabras_data,
+    super_1,
+    super_2,
+    super_3,
 )
 
 # ==============================
 # atlas.io Version 1.2.0 - Copyright © White Labs Technologies 2025
+# author: Jhonattan W. Blanco
 # ==============================
 
 
@@ -352,7 +350,7 @@ def df_sqlite(x, y):
     geo_df_list = [[pt.y, pt.x] for pt in geo_df.geometry]
 
     # Reemplaza 'tu_token_de_acceso' con tu token de acceso de Mapbox
-    mapbox_access_token = "pk.eyJ1IjoiZWluc3RlaW43NSIsImEiOiJjbTlidWdudDAwaWhpMmpxNGc2ZHFiMHkwIn0.j-IlQsLPR_WbPvsIAjac-A"
+    mapbox_access_token = "YOUR_MAPBOX_TOKEN_HERE"
     # Reemplaza 'tu_estilo_mapbox' con el estilo de Mapbox que desees
     mapbox_style = "satellite-streets-v12"
 
@@ -464,18 +462,12 @@ def df_sqlite(x, y):
 
     # === Procesar cables submarinos ===
     submarine_cables = [
-        ("seabras-1", "blue", "id"),
-        ("globenet-0", "yellow", "feature_id"),
-        ("globenet-1", "yellow", "feature_id"),
-        ("asia-africa-europe-1-aae-1", "blue", "id"),
-        ("asia-america-gateway-aag-cable-system", "blue", "id"),
-        ("monet", "blue", "id"),
-        ("ellalink", "blue", "id"),
-        ("america-movil-submarine-cable-system-1-amx-1", "blue", "id"),
-        ("jupiter", "blue", "id"),
+        ("super_1", "blue", "id"),
+        ("super_2", "yellow", "feature_id"),
+        ("super_3", "yellow", "feature_id"),
     ]
 
-    geojson_sub = cargar_geojson("submarine.geojson")
+    geojson_sub = cargar_geojson("submarine_demo.geojson")
     geojson_sub["features"] = reemplazar_nombre(geojson_sub["features"])
 
     for cable_id, color, key in submarine_cables:
@@ -483,15 +475,15 @@ def df_sqlite(x, y):
 
     # === Procesar cables terrestres ===
     terrestres = [
-        ("path_geojson.geojson", "Prueba_de_Path", "red", "id", None),
+        ("path_geojson_demo.geojson", "Prueba_de_Path", "red", "id", None),
         (
-            "path_geojson_2.geojson",
+            "path_geojson_2_demo.geojson",
             "Prueba_de_Path_2",
             "red",
             "id",
             folium.GeoJsonPopup(fields=["link"], aliases=["Enlace:"], localize=False),
         ),
-        ("path_geojson_3.geojson", "Prueba_de_Path_3", "red", "id", None),
+        ("path_geojson_3_demo.geojson", "Prueba_de_Path_3", "red", "id", None),
     ]
 
     for path, cable_id, color, key, popup in terrestres:
@@ -766,15 +758,14 @@ left_co, cent_co, last_co = st.columns(3)
 
 
 if is_session_active():
-    SESSION_DURATION_MINUTES = 5
+    SESSION_DURATION_MINUTES = 25
     elapsed = datetime.now() - session["start_time"]
-    remaining = timedelta(minutes=5) - elapsed
+    remaining = timedelta(minutes=25) - elapsed
     minutes, seconds = divmod(int(remaining.total_seconds()), 60)
     progress = min(elapsed.total_seconds() / 300, 1.0)
 
     with left_co:
         st.markdown(html_atlas, unsafe_allow_html=True)
-        # st.image(orchest_img, width=230)
         st.markdown(
             "<h3 style='text-align: left; color: white;'>FIRM PRICES TOOL</h3>",
             unsafe_allow_html=True,
@@ -840,7 +831,7 @@ if is_session_active():
 
         # Footer
         st.sidebar.markdown(
-            """
+            """ 
             <hr style='border: none; height: 1px; background-color: #555; margin-top: 15px; margin-bottom: 10px;'>
 
             <div style='text-align: center; color: white; font-size: 11px; line-height: 1.4; font-family: Tahoma, sans-serif;'>

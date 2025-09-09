@@ -2,6 +2,11 @@ import sqlite3
 
 import pandas as pd
 
+# ==============================
+# atlas.io Version 1.2.0 - Copyright © White Labs Technologies 2025
+# author: Jhonattan W. Blanco
+# ==============================
+
 # Leer el archivo Excel
 excel_file = "price_list.xlsx"
 df = pd.read_excel(excel_file, sheet_name="Sheet1")
@@ -83,16 +88,6 @@ def dataframe_sqlite():
 
     conn.close()
     print(dataframe)
-
-
-# def df_sqlite():
-#     conn = sqlite3.connect("listadeprecios.db")
-#     df = pd.read_sql_query("SELECT * from listaprecios", conn)
-
-#     # Verify that result of SQL query is stored in the dataframe
-#     print(df.head())
-
-#     conn.close()
 
 
 def df_delete():

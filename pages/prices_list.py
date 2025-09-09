@@ -9,6 +9,11 @@ from session_manager import is_session_active, load_session, logout, save_sessio
 
 st.set_page_config(layout="wide")
 
+# ==============================
+# atlas.io Version 1.2.0 - Copyright © White Labs Technologies 2025
+# author: Jhonattan W. Blanco
+# ==============================
+
 session = load_session()
 
 if not is_session_active():

@@ -4,6 +4,11 @@ import geopandas
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# ==============================
+# atlas.io Version 1.2.0 - Copyright © White Labs Technologies 2025
+# author: Jhonattan W. Blanco
+# ==============================
+
 # ARCHIVO PARA CREAR Y CARGA
 
 # Leer el archivo Excel
@@ -154,4 +159,3 @@ if __name__ == "__main__":
     insert_data()
     # dataframe_sqlite()
     # df_sqlite()
-    # df_delete()
