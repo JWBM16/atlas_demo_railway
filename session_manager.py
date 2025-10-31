@@ -117,10 +117,23 @@ def send_email(recipient, code):
     msg.set_content(f"Tu código de verificación es: {code}")  # fallback texto plano
     msg.add_alternative(html_content, subtype="html")
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-        smtp.starttls()
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.send_message(msg)
+    backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
+    if backend in ("console", "ui", "disabled"):
+        # Modo demo/console: no intenta SMTP, muestra el código en UI
+        st.info("Demo: usa este código de verificación")
+        st.code(code)
+        return
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+            smtp.starttls()
+            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+    except Exception as e:
+        # Fallback si SMTP falla (puertos bloqueados en PaaS, sin red o credenciales)
+        st.warning("No se pudo enviar el correo de verificación. Mostrando el código aquí para continuar.")
+        st.code(code)
+        st.caption(f"Email backend error: {e}")
 
 
 # ==============================
@@ -163,10 +176,18 @@ def send_session_end_email(user, start_time, end_time, recipient):
     )
     msg.add_alternative(html_content, subtype="html")
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
-        smtp.starttls()
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.send_message(msg)
+    try:
+        backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
+        if backend in ("console", "ui", "disabled"):
+            # Evitar bloquear logout si no hay SMTP
+            return
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
+            smtp.starttls()
+            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+    except Exception:
+        # Silencioso: no debe impedir el cierre de sesión
+        pass
 
 
 # ==============================
