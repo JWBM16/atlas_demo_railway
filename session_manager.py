@@ -46,6 +46,8 @@ def init_session():
                     "user_email": "",
                     "code": "",
                     "session_start_time": None,
+                    # acumulado de tiempo de sesión
+                    "total_duration": timedelta(0),
                 },
                 file,
             )
@@ -61,7 +63,15 @@ def load_session():
             raise ValueError(
                 "❗ El archivo de sesión no contiene un diccionario válido."
             )
-        return data
+
+    # asegurar claves mínimas para compatibilidad hacia atrás
+    changed = False
+    if "total_duration" not in data:
+        data["total_duration"] = timedelta(0)
+        changed = True
+    if changed:
+        save_session(data)
+    return data
 
 
 # ==============================
@@ -209,9 +219,9 @@ def verify_code(input_code):
     if session.get("code") == input_code:
         now = datetime.now()
         if session.get("start_time"):
-            # Acumula duración de la sesión previa
+            # Acumula duración de la sesión previa con valor por defecto seguro
             elapsed = now - session["start_time"]
-            session["total_duration"] += elapsed
+            session["total_duration"] = session.get("total_duration", timedelta(0)) + elapsed
 
         # Establece nuevo inicio
         session["verified"] = True
