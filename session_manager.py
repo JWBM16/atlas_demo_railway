@@ -1,6 +1,7 @@
 # session_manager.py
 import pickle
 import os
+import tempfile
 import random
 import streamlit as st
 from datetime import datetime, timedelta
@@ -19,7 +20,9 @@ EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 
-SESSION_FILE = "file.pkl"
+# Usar un directorio de escritura seguro en entornos PaaS (e.g., Railway)
+# /tmp suele estar disponible para escritura; localmente no cambia el comportamiento.
+SESSION_FILE = os.path.join(tempfile.gettempdir(), "file.pkl")
 SESSION_DURATION_MINUTES = 25
 
 # — Usuarios permitidos (hardcoded). Modifica o amplía aquí
