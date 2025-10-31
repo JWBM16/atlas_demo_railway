@@ -55,7 +55,7 @@ with left_co:
     )
 
 conn = sqlite3.connect("listadeprecios.db")
-df = pd.read_sql_query("SELECT * from listaprecios", conn)
+df = pd.read_sql_query("SELECT * from listaprecios_ficticios", conn)
 
 df_filtered = pd.DataFrame()
 

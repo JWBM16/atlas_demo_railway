@@ -270,7 +270,7 @@ def df_sqlite(x, y):
     @st.cache_data
     def cargar_datos():
         conn = sqlite3.connect("firmprices.db")
-        df = pl.read_database("SELECT * FROM preciosfirmes", connection=conn)
+        df = pl.read_database("SELECT * FROM preciosfirmes_ficticios", connection=conn)
         conn.close()
 
         # Limpieza y formateo con Polars
