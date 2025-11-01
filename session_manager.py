@@ -49,6 +49,9 @@ def init_session():
                     "session_start_time": None,
                     # acumulado de tiempo de sesión
                     "total_duration": timedelta(0),
+                    # estado de email del último envío
+                    "email_sent": False,
+                    "last_code": "",
                 },
                 file,
             )
@@ -69,6 +72,12 @@ def load_session():
     changed = False
     if "total_duration" not in data:
         data["total_duration"] = timedelta(0)
+        changed = True
+    if "email_sent" not in data:
+        data["email_sent"] = False
+        changed = True
+    if "last_code" not in data:
+        data["last_code"] = data.get("code", "")
         changed = True
     if changed:
         save_session(data)
@@ -118,11 +127,21 @@ def send_email(recipient, code):
     msg.set_content(f"Tu código de verificación es: {code}")  # fallback texto plano
     msg.add_alternative(html_content, subtype="html")
 
+    # Guardar contexto del código y estado de envío en sesión
+    _session = load_session()
+    _session["last_code"] = code
+    _session["email_sent"] = False  # por defecto hasta confirmar envío
+    save_session(_session)
+
     backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
     if backend in ("console", "ui", "disabled"):
         # Modo demo/console: no intenta SMTP, muestra el código en UI
         st.info("Demo: usa este código de verificación")
         st.code(code)
+        # persistir estado
+        _session = load_session()
+        _session["email_sent"] = False
+        save_session(_session)
         return
 
     if backend == "sendgrid":
@@ -155,11 +174,17 @@ def send_email(recipient, code):
             )
             if resp.status_code not in (200, 201, 202):
                 raise RuntimeError(f"SendGrid API error {resp.status_code}: {resp.text}")
+            _session = load_session()
+            _session["email_sent"] = True
+            save_session(_session)
             return
         except Exception as e:
             st.warning("No se pudo enviar el correo por SendGrid. Mostrando el código aquí para continuar.")
             st.code(code)
             st.caption(f"Email backend error: {e}")
+            _session = load_session()
+            _session["email_sent"] = False
+            save_session(_session)
             return
 
     # SMTP por defecto (Gmail). Intenta TLS 587 y luego SSL 465
@@ -168,18 +193,27 @@ def send_email(recipient, code):
             smtp.starttls()
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             smtp.send_message(msg)
+            _session = load_session()
+            _session["email_sent"] = True
+            save_session(_session)
             return
     except Exception:
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
                 smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
                 smtp.send_message(msg)
+                _session = load_session()
+                _session["email_sent"] = True
+                save_session(_session)
                 return
         except Exception as e:
             # Fallback si SMTP falla (puertos bloqueados en PaaS, sin red o credenciales)
             st.warning("No se pudo enviar el correo de verificación. Mostrando el código aquí para continuar.")
             st.code(code)
             st.caption(f"Email backend error: {e}")
+            _session = load_session()
+            _session["email_sent"] = False
+            save_session(_session)
 
 
 # ==============================
