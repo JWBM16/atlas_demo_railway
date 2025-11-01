@@ -745,6 +745,15 @@ with placeholder.container():
                 else:
                     st.error("Usuario o contraseña incorrectos.")
         else:
+            # Mostrar el código en UI si el backend de email está en modo demo
+            email_backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
+            if email_backend in ("ui", "console"):
+                _sess = load_session()
+                demo_code = _sess.get("code")
+                if demo_code:
+                    st.info("Demo 2FA: tu código de verificación es")
+                    st.code(demo_code)
+
             code_input = st.text_input("Código de verificación")
             if st.button("Verificar código"):
                 if verify_code(code_input):
