@@ -3,6 +3,7 @@ import pickle
 import os
 import tempfile
 import random
+import requests
 import streamlit as st
 from datetime import datetime, timedelta
 import smtplib
@@ -124,16 +125,61 @@ def send_email(recipient, code):
         st.code(code)
         return
 
+    if backend == "sendgrid":
+        # Envío por API HTTP (443) — funciona en PaaS sin SMTP
+        api_key = os.getenv("SENDGRID_API_KEY")
+        sender = os.getenv("EMAIL_FROM") or EMAIL_ADDRESS
+        if not api_key or not sender:
+            st.warning("Configura SENDGRID_API_KEY y EMAIL_FROM/EMAIL_ADDRESS para enviar el código por email.")
+            st.code(code)
+            return
+        try:
+            resp = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "personalizations": [
+                        {"to": [{"email": recipient}]}
+                    ],
+                    "from": {"email": sender},
+                    "subject": "Código de verificación - Acceso Atlas",
+                    "content": [
+                        {"type": "text/plain", "value": f"Tu código de verificación es: {code}"},
+                        {"type": "text/html", "value": html_content},
+                    ],
+                },
+                timeout=15,
+            )
+            if resp.status_code not in (200, 201, 202):
+                raise RuntimeError(f"SendGrid API error {resp.status_code}: {resp.text}")
+            return
+        except Exception as e:
+            st.warning("No se pudo enviar el correo por SendGrid. Mostrando el código aquí para continuar.")
+            st.code(code)
+            st.caption(f"Email backend error: {e}")
+            return
+
+    # SMTP por defecto (Gmail). Intenta TLS 587 y luego SSL 465
     try:
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
             smtp.starttls()
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             smtp.send_message(msg)
-    except Exception as e:
-        # Fallback si SMTP falla (puertos bloqueados en PaaS, sin red o credenciales)
-        st.warning("No se pudo enviar el correo de verificación. Mostrando el código aquí para continuar.")
-        st.code(code)
-        st.caption(f"Email backend error: {e}")
+            return
+    except Exception:
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+                return
+        except Exception as e:
+            # Fallback si SMTP falla (puertos bloqueados en PaaS, sin red o credenciales)
+            st.warning("No se pudo enviar el correo de verificación. Mostrando el código aquí para continuar.")
+            st.code(code)
+            st.caption(f"Email backend error: {e}")
 
 
 # ==============================
@@ -179,15 +225,46 @@ def send_session_end_email(user, start_time, end_time, recipient):
     try:
         backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
         if backend in ("console", "ui", "disabled"):
-            # Evitar bloquear logout si no hay SMTP
             return
+        if backend == "sendgrid":
+            api_key = os.getenv("SENDGRID_API_KEY")
+            sender = os.getenv("EMAIL_FROM") or EMAIL_ADDRESS
+            if not api_key or not sender:
+                return
+            requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "personalizations": [
+                        {"to": [{"email": recipient}]}
+                    ],
+                    "from": {"email": sender},
+                    "subject": f"Sesión cerrada - {user}",
+                    "content": [
+                        {"type": "text/plain", "value": f"Usuario: {user}\nInicio: {start_time}\nFin: {end_time}"},
+                        {"type": "text/html", "value": html_content},
+                    ],
+                },
+                timeout=15,
+            )
+            return
+
+        # SMTP por defecto
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
             smtp.starttls()
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             smtp.send_message(msg)
     except Exception:
-        # Silencioso: no debe impedir el cierre de sesión
-        pass
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                smtp.send_message(msg)
+        except Exception:
+            # Silencioso: no debe impedir el cierre de sesión
+            pass
 
 
 # ==============================
