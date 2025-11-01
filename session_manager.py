@@ -96,124 +96,12 @@ def save_session(session):
 # Envía un código de verificación por correo
 # ==============================
 def send_email(recipient, code):
-    msg = EmailMessage()
-    msg["Subject"] = "Código de verificación - Acceso Atlas"
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = recipient
-
-    html_content = f"""
-    <html>
-        <body style="font-family: Tahoma, sans-serif;">
-            <div style="
-                width: 330px;
-                height: 75px;
-                font-weight: bold;
-                font-size: 32px;
-                text-transform: lowercase;
-                text-align: left;
-                display: flex;
-                align-items: center;
-                padding-left: 10px;
-                border-bottom: 2px solid #ccc;
-                margin-bottom: 20px;">
-                atlas.io&nbsp;🌐
-            </div>
-            <p>Tu código de verificación es:</p>
-            <h2 style="color: #004aad;">{code}</h2>
-        </body>
-    </html>
-    """
-
-    msg.set_content(f"Tu código de verificación es: {code}")  # fallback texto plano
-    msg.add_alternative(html_content, subtype="html")
-
-    # Guardar contexto del código y estado de envío en sesión
+    # 2FA deshabilitado: no enviar correos ni usar red
     _session = load_session()
     _session["last_code"] = code
-    _session["email_sent"] = False  # por defecto hasta confirmar envío
+    _session["email_sent"] = False
     save_session(_session)
-
-    backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
-    if backend in ("console", "ui", "disabled"):
-        # Modo demo/console: no intenta SMTP, muestra el código en UI
-        st.info("Demo: usa este código de verificación")
-        st.code(code)
-        # persistir estado
-        _session = load_session()
-        _session["email_sent"] = False
-        save_session(_session)
-        return
-
-    if backend == "sendgrid":
-        # Envío por API HTTP (443) — funciona en PaaS sin SMTP
-        api_key = os.getenv("SENDGRID_API_KEY")
-        sender = os.getenv("EMAIL_FROM") or EMAIL_ADDRESS
-        if not api_key or not sender:
-            st.warning("Configura SENDGRID_API_KEY y EMAIL_FROM/EMAIL_ADDRESS para enviar el código por email.")
-            st.code(code)
-            return
-        try:
-            resp = requests.post(
-                "https://api.sendgrid.com/v3/mail/send",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "personalizations": [
-                        {"to": [{"email": recipient}]}
-                    ],
-                    "from": {"email": sender},
-                    "subject": "Código de verificación - Acceso Atlas",
-                    "content": [
-                        {"type": "text/plain", "value": f"Tu código de verificación es: {code}"},
-                        {"type": "text/html", "value": html_content},
-                    ],
-                },
-                timeout=15,
-            )
-            if resp.status_code not in (200, 201, 202):
-                raise RuntimeError(f"SendGrid API error {resp.status_code}: {resp.text}")
-            _session = load_session()
-            _session["email_sent"] = True
-            save_session(_session)
-            return
-        except Exception as e:
-            st.warning("No se pudo enviar el correo por SendGrid. Mostrando el código aquí para continuar.")
-            st.code(code)
-            st.caption(f"Email backend error: {e}")
-            _session = load_session()
-            _session["email_sent"] = False
-            save_session(_session)
-            return
-
-    # SMTP por defecto (Gmail). Intenta TLS 587 y luego SSL 465
-    try:
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
-            smtp.starttls()
-            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            smtp.send_message(msg)
-            _session = load_session()
-            _session["email_sent"] = True
-            save_session(_session)
-            return
-    except Exception:
-        try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
-                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                smtp.send_message(msg)
-                _session = load_session()
-                _session["email_sent"] = True
-                save_session(_session)
-                return
-        except Exception as e:
-            # Fallback si SMTP falla (puertos bloqueados en PaaS, sin red o credenciales)
-            st.warning("No se pudo enviar el correo de verificación. Mostrando el código aquí para continuar.")
-            st.code(code)
-            st.caption(f"Email backend error: {e}")
-            _session = load_session()
-            _session["email_sent"] = False
-            save_session(_session)
+    return
 
 
 # ==============================
@@ -256,49 +144,8 @@ def send_session_end_email(user, start_time, end_time, recipient):
     )
     msg.add_alternative(html_content, subtype="html")
 
-    try:
-        backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
-        if backend in ("console", "ui", "disabled"):
-            return
-        if backend == "sendgrid":
-            api_key = os.getenv("SENDGRID_API_KEY")
-            sender = os.getenv("EMAIL_FROM") or EMAIL_ADDRESS
-            if not api_key or not sender:
-                return
-            requests.post(
-                "https://api.sendgrid.com/v3/mail/send",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "personalizations": [
-                        {"to": [{"email": recipient}]}
-                    ],
-                    "from": {"email": sender},
-                    "subject": f"Sesión cerrada - {user}",
-                    "content": [
-                        {"type": "text/plain", "value": f"Usuario: {user}\nInicio: {start_time}\nFin: {end_time}"},
-                        {"type": "text/html", "value": html_content},
-                    ],
-                },
-                timeout=15,
-            )
-            return
-
-        # SMTP por defecto
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as smtp:
-            smtp.starttls()
-            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            smtp.send_message(msg)
-    except Exception:
-        try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
-                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                smtp.send_message(msg)
-        except Exception:
-            # Silencioso: no debe impedir el cierre de sesión
-            pass
+    # 2FA/Emails deshabilitados en Railway: no enviar
+    return
 
 
 # ==============================
@@ -319,25 +166,24 @@ def is_session_active():
 # Inicia el flujo de autenticación
 # ==============================
 def start_auth_flow(username, password):
+    # 2FA deshabilitado: autentica y verifica en un paso
     if username in VALID_USERS and password == VALID_USERS[username]["password"]:
         email = VALID_USERS[username]["email"]
-        code = str(random.randint(100000, 999999))
         session = load_session()
         now = datetime.now()
         session.update(
             {
                 "authenticated": True,
-                "verified": False,
+                "verified": True,
                 "username": username,
                 "user_email": email,
-                "code": code,
+                "code": "",
                 "start_time": now,
                 "session_start_time": now,
             }
         )
         save_session(session)
-        send_email(email, code)
-        return code
+        return True
     else:
         logout()
         return None
@@ -347,20 +193,8 @@ def start_auth_flow(username, password):
 # Verifica el código ingresado por el usuario
 # ==============================
 def verify_code(input_code):
-    session = load_session()
-    if session.get("code") == input_code:
-        now = datetime.now()
-        if session.get("start_time"):
-            # Acumula duración de la sesión previa con valor por defecto seguro
-            elapsed = now - session["start_time"]
-            session["total_duration"] = session.get("total_duration", timedelta(0)) + elapsed
-
-        # Establece nuevo inicio
-        session["verified"] = True
-        session["start_time"] = now
-        save_session(session)
-        return True
-    return False
+    # 2FA deshabilitado: no se requiere verificación adicional
+    return True
 
 
 # ==============================

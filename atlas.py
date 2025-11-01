@@ -726,45 +726,23 @@ with placeholder.container():
         if "username" not in st.session_state:
             st.session_state.username = ""
 
-        if not st.session_state.submitted:
-            st.session_state.username = st.text_input(
-                "Please enter a USER:", value=st.session_state.username
-            )
-            password = st.text_input("Please enter a Password", type="password")
+        # 2FA deshabilitado: login en un solo paso
+        st.session_state.username = st.text_input(
+            "Please enter a USER:", value=st.session_state.username
+        )
+        password = st.text_input("Please enter a Password", type="password")
 
-            if st.button("Submit"):
-                user_info = VALID_USERS.get(st.session_state.username)
-                if user_info and password == user_info["password"]:
-                    email = user_info["email"]
-                    code = start_auth_flow(st.session_state.username, password)
-                    if code:
-                        st.session_state.submitted = True
-                        st.rerun()
-                    else:
-                        st.error("Credenciales inválidas.")
-                else:
-                    st.error("Usuario o contraseña incorrectos.")
-        else:
-            # Mostrar el código en UI según condiciones:
-            # - EMAIL_BACKEND=ui/console
-            # - o si el envío de email falló (email_sent == False)
-            _sess = load_session()
-            email_backend = os.getenv("EMAIL_BACKEND", "smtp").lower()
-            always = os.getenv("ALWAYS_SHOW_2FA_CODE", "0") == "1"
-            must_show = always or (email_backend in ("ui", "console")) or (not _sess.get("email_sent", True))
-            if must_show:
-                demo_code = _sess.get("code") or _sess.get("last_code")
-                if demo_code:
-                    st.info("Tu código de verificación es:")
-                    st.code(demo_code)
-
-            code_input = st.text_input("Código de verificación")
-            if st.button("Verificar código"):
-                if verify_code(code_input):
-                    st.success("Verificación exitosa")
+        if st.button("Submit"):
+            user_info = VALID_USERS.get(st.session_state.username)
+            if user_info and password == user_info["password"]:
+                ok = start_auth_flow(st.session_state.username, password)
+                if ok:
+                    st.success("Login exitoso")
                     st.rerun()
                 else:
-                    st.error("Código incorrecto")
+                    st.error("Credenciales inválidas.")
+            else:
+                st.error("Usuario o contraseña incorrectos.")
 
 
 left_co, cent_co, last_co = st.columns(3)
